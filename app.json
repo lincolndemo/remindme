@@ -4,9 +4,22 @@
     "slug": "remind-me-jo",
     "version": "1.0.0",
     "scheme": "remindmejo",
-    "web": { "bundler": "metro" },
-    "plugins": ["expo-router"],
-    "android": { "adaptiveIcon": { "foregroundImage": "./assets/adaptive-icon.png", "backgroundColor": "#6C47FF" } },
-    "ios": { "bundleIdentifier": "com.remindmejo.app", "supportsTablet": false }
+    "web": {
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      "@react-native-community/datetimepicker"
+    ],
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#6C47FF"
+      }
+    },
+    "ios": {
+      "bundleIdentifier": "com.remindmejo.app",
+      "supportsTablet": false
+    }
   }
 }
