@@ -26,19 +26,19 @@ export function VoiceSheet({ visible, onConfirm, onEditManually, onClose }: Prop
       sheetRef.current?.close();
       reset();
     }
-  }, [visible]);
+  }, [visible, startListening, reset]);
 
-  const handleConfirm = (d: ReminderDraft) => {
+  const handleConfirm = useCallback((d: ReminderDraft) => {
     onConfirm(d);
     reset();
     onClose();
-  };
+  }, [onConfirm, reset, onClose]);
 
-  const handleEdit = (d: ReminderDraft) => {
+  const handleEdit = useCallback((d: ReminderDraft) => {
     onEditManually(d);
     reset();
     onClose();
-  };
+  }, [onEditManually, reset, onClose]);
 
   return (
     <BottomSheet
@@ -78,6 +78,15 @@ export function VoiceSheet({ visible, onConfirm, onEditManually, onClose }: Prop
             onEdit={handleEdit}
             onDiscard={() => { reset(); onClose(); }}
           />
+        )}
+
+        {state === 'done' && !draft && (
+          <View style={styles.centeredState}>
+            <Text style={styles.stateHint}>Could not parse a reminder. Try again or fill in manually.</Text>
+            <TouchableOpacity style={styles.manualBtn} onPress={() => { reset(); onClose(); }}>
+              <Text style={styles.manualText}>Dismiss</Text>
+            </TouchableOpacity>
+          </View>
         )}
 
         {(state === 'error' || state === 'offline_fallback') && (
