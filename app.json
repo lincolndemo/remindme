@@ -25,6 +25,9 @@
     "ios": {
       "bundleIdentifier": "com.remindmejo.app",
       "supportsTablet": false
+    },
+    "extra": {
+      "anthropicApiKey": "$EXPO_PUBLIC_ANTHROPIC_API_KEY"
     }
   }
 }
