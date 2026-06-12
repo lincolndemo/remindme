@@ -1,4 +1,5 @@
 import React from 'react';
+import type { ComponentProps } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { Reminder } from '../types';
@@ -16,7 +17,7 @@ export function ReminderCard({ reminder, onPress, onArchive }: Props) {
   return (
     <TouchableOpacity style={styles.card} onPress={() => onPress(reminder.id)}>
       <View style={[styles.iconWrap, { backgroundColor: config.color + '20' }]}>
-        <Ionicons name={config.icon as any} size={22} color={config.color} />
+        <Ionicons name={config.icon as ComponentProps<typeof Ionicons>['name']} size={22} color={config.color} />
       </View>
       <View style={styles.body}>
         <Text style={styles.title} numberOfLines={1}>{reminder.title}</Text>

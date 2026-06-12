@@ -31,6 +31,9 @@ export function groupRemindersByTimeframe(reminders: Reminder[]): GroupedReminde
     overdue: active.filter((r) => dayjs(r.dueDate).isBefore(now, 'day')),
     today: active.filter((r) => isToday(r.dueDate)),
     thisWeek: active.filter((r) => isThisWeek(r.dueDate)),
-    upcoming: active.filter((r) => dayjs(r.dueDate).isAfter(now.add(6, 'day'), 'day')),
+    upcoming: active.filter((r) => {
+      const d = dayjs(r.dueDate);
+      return !d.isBefore(now, 'day') && !isToday(r.dueDate) && !isThisWeek(r.dueDate);
+    }),
   };
 }

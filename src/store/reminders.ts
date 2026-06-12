@@ -17,8 +17,12 @@ export const useReminderStore = create<ReminderStore>()((set, get) => ({
 
   loadReminders: async () => {
     set({ isLoading: true });
-    const reminders = await db.getReminders();
-    set({ reminders, isLoading: false });
+    try {
+      const reminders = await db.getReminders();
+      set({ reminders });
+    } finally {
+      set({ isLoading: false });
+    }
   },
 
   addReminder: async (draft) => {
