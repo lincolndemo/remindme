@@ -9,7 +9,7 @@ export default function NewReminderScreen() {
   const { addReminder } = useReminders();
   const { prefill } = useLocalSearchParams<{ prefill?: string }>();
   const initialValues: Partial<ReminderDraft> | undefined = prefill
-    ? JSON.parse(prefill)
+    ? (() => { try { return JSON.parse(prefill) as Partial<ReminderDraft>; } catch { return undefined; } })()
     : undefined;
 
   const handleSubmit = async (draft: ReminderDraft) => {

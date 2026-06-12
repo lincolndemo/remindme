@@ -9,7 +9,7 @@ import type { ReminderDraft } from '../types';
 
 interface Props {
   visible: boolean;
-  onConfirm: (draft: ReminderDraft) => void;
+  onConfirm: (draft: ReminderDraft) => void | Promise<void>;
   onEditManually: (draft?: ReminderDraft) => void;
   onClose: () => void;
 }
@@ -28,8 +28,8 @@ export function VoiceSheet({ visible, onConfirm, onEditManually, onClose }: Prop
     }
   }, [visible, startListening, reset]);
 
-  const handleConfirm = useCallback((d: ReminderDraft) => {
-    onConfirm(d);
+  const handleConfirm = useCallback(async (d: ReminderDraft) => {
+    await onConfirm(d);
     reset();
     onClose();
   }, [onConfirm, reset, onClose]);
