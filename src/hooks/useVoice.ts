@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Voice from '@react-native-voice/voice';
 import { parseReminderFromText, NLPParseError } from '../services/nlp';
 import { searchContactByName } from '../services/contacts';
@@ -22,6 +22,7 @@ export function useVoice(): UseVoiceResult {
   const [transcript, setTranscript] = useState('');
   const [draft, setDraft] = useState<ReminderDraft | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const processingRef = useRef(false);
 
   useEffect(() => {
     Voice.onSpeechResults = (e: any) => {
@@ -35,53 +36,66 @@ export function useVoice(): UseVoiceResult {
       setError(e.error?.message ?? 'Voice recognition failed');
       setState('error');
     };
-    return () => { Voice.destroy?.(); };
+    return () => {
+      Voice.onSpeechResults = null;
+      Voice.onSpeechEnd = null;
+      Voice.onSpeechError = null;
+      Voice.destroy?.();
+    };
   }, []);
 
   useEffect(() => {
-    if (state === 'processing' && transcript) {
-      processTranscript(transcript);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state, transcript]);
-
-  const processTranscript = async (text: string) => {
-    try {
-      const nlpResult: NLPResult = await parseReminderFromText(text);
-      const contact = nlpResult.contactName
-        ? await searchContactByName(nlpResult.contactName)
-        : null;
-
-      const reminderDraft: ReminderDraft = {
-        title: nlpResult.title,
-        category: nlpResult.category,
-        dueDate: nlpResult.dueDate,
-        amount: nlpResult.amount,
-        currency: nlpResult.currency,
-        contact: contact ?? (nlpResult.contactName ? { name: nlpResult.contactName } : undefined),
-        leadTimes: nlpResult.leadTimes.length
-          ? nlpResult.leadTimes
-          : DEFAULT_LEAD_TIMES[nlpResult.category],
-        notes: nlpResult.notes,
+    let cancelled = false;
+    if (state === 'processing' && transcript && !processingRef.current) {
+      processingRef.current = true;
+      const run = async () => {
+        try {
+          const nlpResult: NLPResult = await parseReminderFromText(transcript);
+          if (cancelled) return;
+          const contact = nlpResult.contactName
+            ? await searchContactByName(nlpResult.contactName)
+            : null;
+          if (cancelled) return;
+          const reminderDraft: ReminderDraft = {
+            title: nlpResult.title,
+            category: nlpResult.category,
+            dueDate: nlpResult.dueDate,
+            amount: nlpResult.amount,
+            currency: nlpResult.currency,
+            contact: contact ?? (nlpResult.contactName ? { name: nlpResult.contactName } : undefined),
+            leadTimes: nlpResult.leadTimes.length ? nlpResult.leadTimes : DEFAULT_LEAD_TIMES[nlpResult.category],
+            notes: nlpResult.notes,
+          };
+          setDraft(reminderDraft);
+          setState('done');
+        } catch (e) {
+          if (cancelled) return;
+          if (e instanceof NLPParseError) {
+            setState('offline_fallback');
+          } else {
+            setError('Could not process reminder. Please try again or fill in manually.');
+            setState('error');
+          }
+        } finally {
+          processingRef.current = false;
+        }
       };
-      setDraft(reminderDraft);
-      setState('done');
-    } catch (e) {
-      if (e instanceof NLPParseError) {
-        setState('offline_fallback');
-      } else {
-        setError('Could not process reminder. Please try again or fill in manually.');
-        setState('error');
-      }
+      run();
     }
-  };
+    return () => { cancelled = true; };
+  }, [state, transcript]);
 
   const startListening = useCallback(async () => {
     setTranscript('');
     setDraft(null);
     setError(null);
     setState('listening');
-    await Voice.start('en-NG');
+    try {
+      await Voice.start('en-NG');
+    } catch (e) {
+      setError('Failed to start voice recognition');
+      setState('error');
+    }
   }, []);
 
   const stopListening = useCallback(async () => {
