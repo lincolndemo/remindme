@@ -46,3 +46,15 @@ export interface GroupedReminders {
   thisWeek: Reminder[];
   upcoming: Reminder[];
 }
+
+export interface NLPResult {
+  title: string;
+  category: ReminderCategory;
+  dueDate: string;
+  amount?: number;
+  currency?: string;
+  contactName?: string;
+  leadTimes: LeadTime[];
+  notes?: string;
+  confidence: number;
+}
