@@ -59,4 +59,32 @@ describe('parseReminderFromText', () => {
     });
     await expect(parseReminderFromText('some text')).rejects.toThrow('NLPParseError');
   });
+
+  it('throws NLPParseError when response fails schema validation', async () => {
+    mockCreate.mockResolvedValue({
+      content: [{ type: 'text', text: JSON.stringify({ category: 'not_a_valid_category', confidence: 0.9 }) }],
+    });
+    await expect(parseReminderFromText('some text')).rejects.toThrow('NLPParseError');
+  });
+
+  it('throws NLPParseError when response content is empty', async () => {
+    mockCreate.mockResolvedValue({ content: [] });
+    await expect(parseReminderFromText('some text')).rejects.toThrow('NLPParseError');
+  });
+
+  it('throws NLPParseError when confidence is below 0.5', async () => {
+    mockCreate.mockResolvedValue({
+      content: [{ type: 'text', text: JSON.stringify({
+        title: 'Something', category: 'custom',
+        dueDate: new Date().toISOString(),
+        leadTimes: [], confidence: 0.3,
+      })}],
+    });
+    await expect(parseReminderFromText('unclear text')).rejects.toThrow('NLPParseError');
+  });
+
+  it('throws NLPParseError when input is empty string', async () => {
+    await expect(parseReminderFromText('')).rejects.toThrow('NLPParseError');
+    expect(mockCreate).not.toHaveBeenCalled();
+  });
 });
