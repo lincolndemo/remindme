@@ -1,10 +1,10 @@
-jest.mock('expo-contacts', () => ({
+jest.mock('expo-contacts/legacy', () => ({
   requestPermissionsAsync: jest.fn(),
   getContactsAsync: jest.fn(),
   Fields: { Name: 'name', PhoneNumbers: 'phoneNumbers' },
 }));
 
-import * as ExpoContacts from 'expo-contacts';
+import * as ExpoContacts from 'expo-contacts/legacy';
 import { searchContactByName } from '../../src/services/contacts';
 
 describe('searchContactByName', () => {
@@ -32,5 +32,15 @@ describe('searchContactByName', () => {
     (ExpoContacts.getContactsAsync as jest.Mock).mockResolvedValue({ data: [] });
     const result = await searchContactByName('Unknown Person');
     expect(result).toBeNull();
+  });
+
+  it('returns contact with undefined phone when no numbers exist', async () => {
+    (ExpoContacts.requestPermissionsAsync as jest.Mock).mockResolvedValue({ status: 'granted' });
+    (ExpoContacts.getContactsAsync as jest.Mock).mockResolvedValue({
+      data: [{ id: '456', name: 'No Phone Person', phoneNumbers: [] }],
+    });
+    const result = await searchContactByName('No Phone');
+    expect(result).not.toBeNull();
+    expect(result?.phone).toBeUndefined();
   });
 });

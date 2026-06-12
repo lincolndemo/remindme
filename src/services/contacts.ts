@@ -1,4 +1,5 @@
-import * as ExpoContacts from 'expo-contacts';
+// @ts-ignore
+import * as ExpoContacts from 'expo-contacts/legacy';
 import type { ContactLink } from '../types';
 
 export async function searchContactByName(name: string): Promise<ContactLink | null> {
@@ -13,6 +14,7 @@ export async function searchContactByName(name: string): Promise<ContactLink | n
   if (!data.length) return null;
 
   const contact = data[0];
+  if (!contact.id) return null;
   return {
     contactId: contact.id,
     name: contact.name ?? name,
