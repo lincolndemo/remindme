@@ -1,5 +1,13 @@
 jest.mock('expo-sqlite', () => require('../mocks/expo-sqlite'));
 jest.mock('../../src/db/reminders');
+jest.mock('expo-notifications', () => ({
+  setNotificationHandler: jest.fn(),
+  scheduleNotificationAsync: jest.fn().mockResolvedValue('test-notif-id'),
+  cancelScheduledNotificationAsync: jest.fn().mockResolvedValue(undefined),
+  requestPermissionsAsync: jest.fn().mockResolvedValue({ status: 'granted' }),
+  AndroidImportance: { HIGH: 4 },
+}));
+jest.mock('expo-device', () => ({ isDevice: true }));
 
 import { useReminderStore } from '../../src/store/reminders';
 import * as db from '../../src/db/reminders';
@@ -8,6 +16,7 @@ const mockReminder = {
   id: 'abc', title: 'Test', category: 'task' as const,
   dueDate: '2026-07-01T10:00:00.000Z', leadTimes: [],
   isArchived: false, createdAt: '', updatedAt: '',
+  notificationIds: [],
 };
 
 beforeEach(() => {

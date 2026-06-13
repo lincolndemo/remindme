@@ -31,4 +31,10 @@ export async function runMigrations(db: SQLite.SQLiteDatabase): Promise<void> {
     await db.execAsync(CREATE_REMINDERS_TABLE);
     await setVersion(db, 1);
   }
+  if (version < 2) {
+    await db.execAsync(
+      `ALTER TABLE reminders ADD COLUMN notification_ids TEXT NOT NULL DEFAULT '[]'`
+    );
+    await setVersion(db, 2);
+  }
 }

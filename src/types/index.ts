@@ -32,6 +32,7 @@ export interface Reminder {
   notes?: string;
   isArchived: boolean;
   calendarEventId?: string;
+  notificationIds?: string[];
   createdAt: string;
   updatedAt: string;
 }

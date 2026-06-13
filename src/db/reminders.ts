@@ -19,6 +19,7 @@ function rowToReminder(row: Record<string, unknown>): Reminder {
     notes: row.notes as string | undefined,
     isArchived: Boolean(row.is_archived),
     calendarEventId: row.calendar_event_id as string | undefined,
+    notificationIds: JSON.parse((row.notification_ids as string) ?? '[]'),
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
   };
@@ -84,5 +85,13 @@ export async function archiveReminder(id: string): Promise<void> {
   await db.runAsync(
     `UPDATE reminders SET is_archived = 1, updated_at = ? WHERE id = ?`,
     [new Date().toISOString(), id]
+  );
+}
+
+export async function updateNotificationIds(id: string, notificationIds: string[]): Promise<void> {
+  const db = await getDb();
+  await db.runAsync(
+    `UPDATE reminders SET notification_ids = ?, updated_at = ? WHERE id = ?`,
+    [JSON.stringify(notificationIds), new Date().toISOString(), id]
   );
 }

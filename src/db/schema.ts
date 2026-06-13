@@ -11,6 +11,7 @@ export const CREATE_REMINDERS_TABLE = `
     notes       TEXT,
     is_archived INTEGER NOT NULL DEFAULT 0,
     calendar_event_id TEXT,
+    notification_ids TEXT NOT NULL DEFAULT '[]',
     created_at  TEXT NOT NULL,
     updated_at  TEXT NOT NULL
   );
@@ -24,4 +25,4 @@ export const CREATE_META_TABLE = `
 `;
 
 export const DB_NAME = 'remindmejo.db';
-export const CURRENT_DB_VERSION = 1;
+export const CURRENT_DB_VERSION = 2;

@@ -11,6 +11,7 @@ const db = {
         due_date: params[3], amount: params[4], currency: params[5],
         contact: params[6], lead_times: params[7], notes: params[8],
         is_archived: 0, calendar_event_id: params[9],
+        notification_ids: '[]',
         created_at: params[10], updated_at: params[11],
       };
     }
@@ -19,6 +20,13 @@ const db = {
       if (store[id]) {
         store[id].is_archived = 1;
         store[id].updated_at = params[0];
+      }
+    }
+    if (sql.includes('UPDATE reminders SET') && sql.includes('notification_ids = ?')) {
+      const id = params[params.length - 1] as string;
+      if (store[id]) {
+        store[id].notification_ids = params[0];
+        store[id].updated_at = params[1];
       }
     }
     if (sql.includes('UPDATE reminders SET') && sql.includes('title=?')) {
@@ -71,6 +79,7 @@ beforeEach(() => {
         due_date: params[3], amount: params[4], currency: params[5],
         contact: params[6], lead_times: params[7], notes: params[8],
         is_archived: 0, calendar_event_id: params[9],
+        notification_ids: '[]',
         created_at: params[10], updated_at: params[11],
       };
     }
@@ -79,6 +88,13 @@ beforeEach(() => {
       if (store[id]) {
         store[id].is_archived = 1;
         store[id].updated_at = params[0];
+      }
+    }
+    if (sql.includes('UPDATE reminders SET') && sql.includes('notification_ids = ?')) {
+      const id = params[params.length - 1] as string;
+      if (store[id]) {
+        store[id].notification_ids = params[0];
+        store[id].updated_at = params[1];
       }
     }
     if (sql.includes('UPDATE reminders SET') && sql.includes('title=?')) {
