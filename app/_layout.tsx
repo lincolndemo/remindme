@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { AppState, AppStateStatus } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -7,6 +8,8 @@ import * as Notifications from 'expo-notifications';
 import { router } from 'expo-router';
 import { getDb } from '../src/db/migrations';
 import { useReminderStore } from '../src/store/reminders';
+import { useAuthStore } from '../src/store/auth';
+import { useSync } from '../src/hooks/useSync';
 import { snoozeNotification } from '../src/services/notifications';
 import { openWhatsApp } from '../src/services/whatsapp';
 import { getReminders } from '../src/db/reminders';
@@ -22,13 +25,31 @@ async function registerNotificationCategories() {
   ]);
 }
 
+function SyncManager() {
+  const { sync } = useSync();
+  const appState = useRef<AppStateStatus>(AppState.currentState);
+
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (next) => {
+      if (appState.current.match(/inactive|background/) && next === 'active') {
+        sync();
+      }
+      appState.current = next;
+    });
+    return () => sub.remove();
+  }, [sync]);
+
+  return null;
+}
+
 export default function RootLayout() {
   const loadReminders = useReminderStore((s) => s.loadReminders);
+  const loadStoredAuth = useAuthStore((s) => s.loadStoredAuth);
   const notificationListener = useRef<Notifications.Subscription>();
   const responseListener = useRef<Notifications.Subscription>();
 
   useEffect(() => {
-    getDb().then(() => loadReminders());
+    getDb().then(() => Promise.all([loadReminders(), loadStoredAuth()]));
     registerNotificationCategories();
 
     notificationListener.current = Notifications.addNotificationReceivedListener(() => {
@@ -69,6 +90,7 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <StatusBar style="dark" />
+        <SyncManager />
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="reminder/new" options={{ title: 'New Reminder', presentation: 'modal' }} />
