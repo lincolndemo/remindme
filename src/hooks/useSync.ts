@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useAuthStore } from '../store/auth';
 import { useReminderStore } from '../store/reminders';
 import { pushRemindersToCloud, pullRemindersFromCloud } from '../services/supabase';
@@ -7,13 +7,15 @@ import { insertReminder, updateReminder } from '../db/reminders';
 import { isTokenValid } from '../services/auth';
 
 export function useSync() {
+  const syncingRef = useRef(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null);
   const { googleTokens, connectedCalendars } = useAuthStore();
   const { reminders, loadReminders } = useReminderStore();
 
   const sync = useCallback(async () => {
-    if (isSyncing) return;
+    if (syncingRef.current) return;
+    syncingRef.current = true;
     setIsSyncing(true);
     try {
       // 1. Cloud backup (Supabase)
@@ -46,9 +48,10 @@ export function useSync() {
       await loadReminders();
       setLastSyncedAt(new Date());
     } finally {
+      syncingRef.current = false;
       setIsSyncing(false);
     }
-  }, [isSyncing, googleTokens, connectedCalendars, reminders, loadReminders]);
+  }, [googleTokens, connectedCalendars, reminders, loadReminders]);
 
   return { sync, isSyncing, lastSyncedAt };
 }
