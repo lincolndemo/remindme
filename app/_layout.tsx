@@ -1,16 +1,68 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import * as Notifications from 'expo-notifications';
+import { router } from 'expo-router';
 import { getDb } from '../src/db/migrations';
 import { useReminderStore } from '../src/store/reminders';
+import { snoozeNotification } from '../src/services/notifications';
+import { openWhatsApp } from '../src/services/whatsapp';
+import { getReminders } from '../src/db/reminders';
+
+async function registerNotificationCategories() {
+  if (typeof Notifications.setNotificationCategoryAsync !== 'function') return;
+  await Notifications.setNotificationCategoryAsync('REMINDER_WITH_WHATSAPP', [
+    { identifier: 'SNOOZE', buttonTitle: 'Snooze 1hr', options: { isDestructive: false } },
+    { identifier: 'WHATSAPP', buttonTitle: 'Send WhatsApp', options: { isDestructive: false } },
+  ]);
+  await Notifications.setNotificationCategoryAsync('REMINDER_DEFAULT', [
+    { identifier: 'SNOOZE', buttonTitle: 'Snooze 1hr', options: { isDestructive: false } },
+  ]);
+}
 
 export default function RootLayout() {
   const loadReminders = useReminderStore((s) => s.loadReminders);
+  const notificationListener = useRef<Notifications.Subscription>();
+  const responseListener = useRef<Notifications.Subscription>();
 
   useEffect(() => {
     getDb().then(() => loadReminders());
+    registerNotificationCategories();
+
+    notificationListener.current = Notifications.addNotificationReceivedListener(() => {
+      loadReminders();
+    });
+
+    responseListener.current = Notifications.addNotificationResponseReceivedListener(
+      async (response) => {
+        const reminderId = response.notification.request.content.data?.reminderId as string;
+        const actionId = response.actionIdentifier;
+
+        if (actionId === 'SNOOZE' && reminderId) {
+          const title = response.notification.request.content.body ?? 'Reminder';
+          await snoozeNotification(title, reminderId);
+          return;
+        }
+
+        if (actionId === 'WHATSAPP' && reminderId) {
+          const all = await getReminders({ includeArchived: true });
+          const reminder = all.find((r) => r.id === reminderId);
+          if (reminder) await openWhatsApp(reminder);
+          return;
+        }
+
+        if (reminderId) {
+          router.push(`/reminder/${reminderId}`);
+        }
+      }
+    );
+
+    return () => {
+      notificationListener.current?.remove();
+      responseListener.current?.remove();
+    };
   }, []);
 
   return (
