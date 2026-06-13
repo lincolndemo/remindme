@@ -10,16 +10,29 @@
     "plugins": [
       "expo-router",
       "@react-native-community/datetimepicker",
-      ["expo-contacts", { "contactsPermission": "Allow Remind Me Jo to find contacts for your reminders." }],
-      ["@react-native-voice/voice", {
-        "microphonePermission": "Allow Remind Me Jo to use your microphone for voice reminders.",
-        "speechRecognitionPermission": "Allow Remind Me Jo to recognise your speech."
-      }],
-      ["expo-notifications", {
-        "icon": "./assets/notification-icon.png",
-        "color": "#6C47FF",
-        "sounds": []
-      }]
+      [
+        "expo-contacts",
+        {
+          "contactsPermission": "Allow Remind Me Jo to find contacts for your reminders."
+        }
+      ],
+      [
+        "@react-native-voice/voice",
+        {
+          "microphonePermission": "Allow Remind Me Jo to use your microphone for voice reminders.",
+          "speechRecognitionPermission": "Allow Remind Me Jo to recognise your speech."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#6C47FF",
+          "sounds": []
+        }
+      ],
+      "expo-web-browser",
+      "expo-secure-store"
     ],
     "android": {
       "adaptiveIcon": {
