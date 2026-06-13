@@ -46,7 +46,10 @@
       "supportsTablet": false
     },
     "extra": {
-      "anthropicApiKey": "$EXPO_PUBLIC_ANTHROPIC_API_KEY"
+      "anthropicApiKey": "$EXPO_PUBLIC_ANTHROPIC_API_KEY",
+      "supabaseUrl": "$EXPO_PUBLIC_SUPABASE_URL",
+      "supabaseAnonKey": "$EXPO_PUBLIC_SUPABASE_ANON_KEY",
+      "googleClientId": "$EXPO_PUBLIC_GOOGLE_CLIENT_ID"
     }
   }
 }
